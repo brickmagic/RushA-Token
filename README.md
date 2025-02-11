@@ -72,15 +72,16 @@ Install the latest stable version of node.js, npm and npx.
 
 7. **Initial Hardhat**:
    ```bash
-   npm install dotenv --legacy-peer-deps
+   npm hardhat
    ```
-Follow the prompts:   
-What do you want to do? -> Create a JavaScript project (first option)
-Hardhat project root: -> (use default)
-Do you want to add a .gitignore? (Y/n) -> n
+   ```bash
+   What do you want to do? -> Create a JavaScript project (first option)
+   Hardhat project root: -> (use default)
+   Do you want to add a .gitignore? (Y/n) -> n
+   ```
 
 8. **Delete the hardhat default contract and testing file**:
-Remove contracts/Lock.sol and test/Lock.js
+   Remove contracts/Lock.sol and test/Lock.js
    
 9. **Compile the Contract**:
    ```bash
