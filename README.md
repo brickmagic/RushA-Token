@@ -18,7 +18,7 @@ Install the latest stable version of node.js, npm and npx.
    ```bash
    node -v
    ```
-   My results: v22.13.0
+   Sample results: v22.13.0
 
 2. **Verify ther version of npm and npx**:
    ```bash
@@ -28,27 +28,31 @@ Install the latest stable version of node.js, npm and npx.
    ```bash
    npx -v
    ```   
-   My results: 11.0.0
+   Sample results: 11.0.0
 
 ## Getting Started
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/your-username/RushA-Token.git
    cd RushA-Token
+   ```
    
-2. **Install hardhat**:
+2. **Install Hardhat**:
    ```bash
    npm install --save-dev hardhat
+   ```
 
-2. **Install @openzeppelin/contracts and chai**:
+3. **Install @openzeppelin/contracts and chai**:
    ```bash
    npm install @openzeppelin/contracts chai 
+   ```
 
-2. **Install @nomicfoundation/hardhat-toolbox**:
+4. **Install @nomicfoundation/hardhat-toolbox**:
    ```bash
    npm install @nomicfoundation/hardhat-toolbox
+   ```
 
-2. **If encounter dependence error, following these steps**:
+5. **If you encounter dependency errors, follow these steps**:
    ```bash
    npm install @nomicfoundation/hardhat-toolbox --legacy-peer-deps   
    ```
@@ -61,39 +65,45 @@ Install the latest stable version of node.js, npm and npx.
    npm install --save-dev "@nomicfoundation/ignition-core@^0.15.9" "@nomicfoundation/hardhat-ignition@^0.15.9" --legacy-peer-deps
    ```
 
-2. **Install dovenv (optional)**:
+6. **Install dovenv (optional)**:
    ```bash
    npm install dotenv --legacy-peer-deps
    ```
 
-2. **Initial hardhat**:
+7. **Initial Hardhat**:
    ```bash
    npm install dotenv --legacy-peer-deps
    ```
-√ What do you want to do? · Create a JavaScript project
-√ Hardhat project root: · E:\Hardhat Projects\RushA-Token
-√ Do you want to add a .gitignore? (Y/n)
+Follow the prompts:   
+What do you want to do? -> Create a JavaScript project (first option)
+Hardhat project root: -> (use default)
+Do you want to add a .gitignore? (Y/n) -> n
 
-2. **Initial hardhat**:
-Delete the hardhat default contract and testing file: contracts/Lock.sol and test/Lock.js
+8. **Delete the hardhat default contract and testing file**:
+Remove contracts/Lock.sol and test/Lock.js
    
-3. **Compile the Contract**:
+9. **Compile the Contract**:
    ```bash
    npx hardhat compile
+   ```
 
-5. **Run Tests**:
+10. **Run Tests**:
    ```bash
    npx hardhat test
+   ```
 
-4. **Deploy the Contract**:
+11. **Deploy the Contract**:
    ```bash
    npx hardhat run scripts/deploy.js
+   ```
 
-4. **Deploy the Contract to you network**:
+12. **Deploy the Contract to your network**:
    ```bash
    npx hardhat run scripts/deploy.js --network your-network
+   ```
 
-4. **Example**:
+13. **Deploy the Contract to Hardhat for testing**:
+   Update hardhat.config.js
    ```bash
    require("@nomicfoundation/hardhat-toolbox");
    require("dotenv").config();
@@ -113,10 +123,10 @@ Delete the hardhat default contract and testing file: contracts/Lock.sol and tes
       }, 
    };
    ```
-   
-4. **Example**:
+   Deploy to Hardhat network
    ```bash
    npx hardhat run scripts/deploy.js --network hardhat  
+   ```
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
