@@ -16,3 +16,13 @@ RushA Token (RSA) is an ERC20-compliant cryptocurrency designed for efficient an
    ```bash
    git clone https://github.com/your-username/RushA-Token.git
    cd RushA-Token
+   
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/your-username/RushA-Token.git
+   cd RushA-Token
+   
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/your-username/RushA-Token.git
+   cd RushA-Token   
