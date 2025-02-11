@@ -90,10 +90,10 @@ The mint function allows authorized users (called minters) to generate a random 
 9. **Remove the default contract and testing file of Hardhat**:
 
    Delete the files: 1) contracts/Lock.sol, and 2) test/Lock.js
-
+   
 10. **Compile the Contract**
    ```bash
-   npx hardhat compile
+   1npx hardhat compile
    ```
 
 11. **Run Tests**:
