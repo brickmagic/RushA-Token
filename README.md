@@ -18,7 +18,7 @@ Install the latest stable version of node.js, npm and npx.
    ```bash
    node -v
    ```
-   Sample results: v22.13.0
+    Sample results: v22.13.0
 
 2. **Verify ther version of npm and npx**:
    ```bash
@@ -80,8 +80,9 @@ Install the latest stable version of node.js, npm and npx.
    Do you want to add a .gitignore? (Y/n) -> n
    ```
 
-8. **Delete the hardhat default contract and testing file**:
-   Remove contracts/Lock.sol and test/Lock.js
+8. **Remove the default contract and testing file of Hardhat**:
+
+   Delete the files: 1) contracts/Lock.sol, and 2) test/Lock.js
 
 9. **Compile the Contract**:
    ```bash
@@ -89,45 +90,47 @@ Install the latest stable version of node.js, npm and npx.
    ```
 
 10. **Run Tests**:
-   ```bash
-   npx hardhat test
-   ```
+    ```bash
+    npx hardhat test
+    ```
 
 11. **Deploy the Contract**:
-   ```bash
-   npx hardhat run scripts/deploy.js
-   ```
+    ```bash
+    npx hardhat run scripts/deploy.js
+    ```
 
-12. **Deploy the Contract to your network**:
-   ```bash
-   npx hardhat run scripts/deploy.js --network your-network
-   ```
+12. **Deploy the Contract to Hardhat for testing**:
 
-13. **Deploy the Contract to Hardhat for testing**:
-   Update hardhat.config.js
-   ```bash
-   require("@nomicfoundation/hardhat-toolbox");
-   require("dotenv").config();
-
-   /** @type import('hardhat/config').HardhatUserConfig */
-   module.exports = {
+    #### Update hardhat.config.js
+    
+    ```bash
+    require("@nomicfoundation/hardhat-toolbox");
+    require("dotenv").config();
+    
+    /** @type import('hardhat/config').HardhatUserConfig */
+    module.exports = {
       solidity: "0.8.28",
-      networks: {
-         hardhat: {
+        networks: {
+          hardhat: {
             chainId: 1337,
             allowUnlimitedContractSize: true,
             mining: {
-            auto: true,
-            interval: 0
+              auto: true,
+              interval: 0
             },
-         }, 
-      }, 
-   };
-   ```
-   Deploy to Hardhat network
-   ```bash
-   npx hardhat run scripts/deploy.js --network hardhat  
-   ```
+          }, 
+       }, 
+    };
+    ```
+    #### Deploy to Hardhat network
+    ```bash
+    npx hardhat run scripts/deploy.js --network hardhat  
+    ```
+
+13. **Deploy the Contract to your network (need to define your network in hardhat.config.js)**:
+    ```bash
+    npx hardhat run scripts/deploy.js --network your-network
+    ```
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
