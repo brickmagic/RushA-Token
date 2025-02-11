@@ -91,7 +91,7 @@ The mint function allows authorized users (called minters) to generate a random 
 
    Delete the files: 1) contracts/Lock.sol, and 2) test/Lock.js
 
-10. **Compile the Contract**:
+10. **Compile the Contract**
    ```bash
    npx hardhat compile
    ```
