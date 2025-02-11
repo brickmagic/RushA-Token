@@ -11,24 +11,16 @@ RushA Token (RSA) is an ERC20-compliant cryptocurrency designed for efficient an
 - **Reentrancy Guard**: Protects against reentrancy attacks to ensure contract security.
 - **Whitelist and Blacklist**: Manage addresses with whitelist and blacklist functionalities for enhanced control.
 
-## Preparation
-Install the latest stable version of node.js, npm and npx.
+## Minting Logic
+### Basic Logic
+The mint function allows authorized users (called minters) to generate a random amount of tokens and send them to a specified address. This process is governed by several rules to ensure orderly and controlled token issuance.
 
-1. **Verify ther version of node.js**:
-   ```bash
-   node -v
-   ```
-    Sample results: v22.13.0
-
-2. **Verify ther version of npm and npx**:
-   ```bash
-   npm -v
-   ```  
-   
-   ```bash
-   npx -v
-   ```   
-   Sample results: 11.0.0
+### Rules
+- **Random Amount**: Each minting operation generates a random amount of tokens, up to a predefined maximum.
+- **Daily Limit**: Each minter can only mint tokens once per day.
+- **Hourly Limit**: There is a maximum number of minting operations allowed per hour.
+- **Total Supply Cap**: The total supply of tokens cannot exceed the contract's predefined cap.
+- **Address Check**: Tokens cannot be minted to the zero address (an invalid address).
 
 ## Getting Started
 1. **Clone the Repository**:
@@ -36,6 +28,21 @@ Install the latest stable version of node.js, npm and npx.
    git clone https://github.com/brickmagic/RushA-Token.git
    cd RushA-Token
    ```
+
+
+2. **Verify ther version of node.js, npm and npx**:
+   ```bash
+   node -v
+   ```
+    Sample results: v22.13.0
+
+   ```bash
+   npm -v
+   ```     
+   ```bash
+   npx -v
+   ```   
+   Sample results: 11.0.0   
    
 2. **Install Hardhat**:
    ```bash
