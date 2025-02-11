@@ -82,7 +82,7 @@ Install the latest stable version of node.js, npm and npx.
 
 8. **Delete the hardhat default contract and testing file**:
    Remove contracts/Lock.sol and test/Lock.js
-   
+
 9. **Compile the Contract**:
    ```bash
    npx hardhat compile
