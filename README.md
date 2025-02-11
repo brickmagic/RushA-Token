@@ -136,7 +136,7 @@ Install the latest stable version of node.js, npm and npx.
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Contributing
-We welcome contributions from the community! Please read our CONTRIBUTING guidelines before submitting a pull request.
+We welcome contributions from the community!
 
 ## Contact
 For any questions or inquiries, please open an issue or contact us at [brickmagic@gmail.com].
