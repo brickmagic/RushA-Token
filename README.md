@@ -33,7 +33,7 @@ Install the latest stable version of node.js, npm and npx.
 ## Getting Started
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-username/RushA-Token.git
+   git clone https://github.com/brickmagic/RushA-Token.git
    cd RushA-Token
    ```
    
