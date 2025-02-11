@@ -34,7 +34,7 @@ The mint function allows authorized users (called minters) to generate a random 
    ```bash
    node -v
    ```
-    Sample results: v22.13.0
+    Expected results: v22.13.0 or higher
 
    ```bash
    npm -v
@@ -42,24 +42,24 @@ The mint function allows authorized users (called minters) to generate a random 
    ```bash
    npx -v
    ```   
-   Sample results: 11.0.0   
+   Expected results: 11.0.0 or higher
    
-2. **Install Hardhat**:
+3. **Install Hardhat**:
    ```bash
    npm install --save-dev hardhat
    ```
 
-3. **Install @openzeppelin/contracts and chai**:
+4. **Install @openzeppelin/contracts and chai**:
    ```bash
    npm install @openzeppelin/contracts chai 
    ```
 
-4. **Install @nomicfoundation/hardhat-toolbox**:
+5. **Install @nomicfoundation/hardhat-toolbox**:
    ```bash
    npm install @nomicfoundation/hardhat-toolbox
    ```
 
-5. **If you encounter dependency errors, follow these steps**:
+6. **If you encounter dependency errors, follow these steps**:
    ```bash
    npm install @nomicfoundation/hardhat-toolbox --legacy-peer-deps   
    ```
@@ -72,12 +72,12 @@ The mint function allows authorized users (called minters) to generate a random 
    npm install --save-dev "@nomicfoundation/ignition-core@^0.15.9" "@nomicfoundation/hardhat-ignition@^0.15.9" --legacy-peer-deps
    ```
 
-6. **Install dovenv (optional)**:
+7. **Install dovenv (optional)**:
    ```bash
    npm install dotenv --legacy-peer-deps
    ```
 
-7. **Initial Hardhat**:
+8. **Initial Hardhat**:
    ```bash
    npm hardhat
    ```
@@ -87,26 +87,26 @@ The mint function allows authorized users (called minters) to generate a random 
    Do you want to add a .gitignore? (Y/n) -> n
    ```
 
-8. **Remove the default contract and testing file of Hardhat**:
+9. **Remove the default contract and testing file of Hardhat**:
 
    Delete the files: 1) contracts/Lock.sol, and 2) test/Lock.js
 
-9. **Compile the Contract**:
+10. **Compile the Contract**:
    ```bash
    npx hardhat compile
    ```
 
-10. **Run Tests**:
+11. **Run Tests**:
     ```bash
     npx hardhat test
     ```
 
-11. **Deploy the Contract**:
+12. **Deploy the Contract**:
     ```bash
     npx hardhat run scripts/deploy.js
     ```
 
-12. **Deploy the Contract to Hardhat for testing**:
+13. **Deploy the Contract to Hardhat for testing**:
 
     #### Update hardhat.config.js
     
@@ -134,7 +134,7 @@ The mint function allows authorized users (called minters) to generate a random 
     npx hardhat run scripts/deploy.js --network hardhat  
     ```
 
-13. **Deploy the Contract to your network (need to define your network in hardhat.config.js)**:
+14. **Deploy the Contract to your network (need to define your network in hardhat.config.js)**:
     ```bash
     npx hardhat run scripts/deploy.js --network your-network
     ```
