@@ -17,12 +17,27 @@ RushA Token (RSA) is an ERC20-compliant cryptocurrency designed for efficient an
    git clone https://github.com/your-username/RushA-Token.git
    cd RushA-Token
    
-1. **Clone the Repository**:
+2. **Install Dependencies**:
    ```bash
-   git clone https://github.com/your-username/RushA-Token.git
-   cd RushA-Token
+   npm install
    
-1. **Clone the Repository**:
+3. **Compile the Contract**:
    ```bash
-   git clone https://github.com/your-username/RushA-Token.git
-   cd RushA-Token   
+   npx hardhat compile
+
+4. **Deploy the Contract**:
+   ```bash
+   npx hardhat run scripts/deploy.js --network your-network
+
+5. **Run Tests**:
+   ```bash
+   npx hardhat test
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Contributing
+We welcome contributions from the community! Please read our CONTRIBUTING guidelines before submitting a pull request.
+
+## Contact
+For any questions or inquiries, please open an issue or contact us at [brickmagic@gmail.com].
