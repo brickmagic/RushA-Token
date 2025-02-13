@@ -17,7 +17,7 @@ describe("RushA", function () {
     });
 
     it("should allow random minting and record minting history", async function () {
-        await rushA.addMinter(addr1.address);
+        //await rushA.addMinter(addr1.address);
         await rushA.connect(addr1).mint(addr1.address);
 
         const balance = await rushA.balanceOf(addr1.address);
@@ -71,7 +71,7 @@ describe("RushA", function () {
     });
 
     it("should handle high volume of minting", async function () {
-      await rushA.addMinter(addr1.address);
+      //await rushA.addMinter(addr1.address);
       const numMints = 50;
       let mintingFailed = false;
   
@@ -96,11 +96,11 @@ describe("RushA", function () {
 
     it("should handle multiple miners with different minting schedules", async function () {
       const [miner1, miner2, miner3, miner4, miner5] = await ethers.getSigners();
-      await rushA.addMinter(miner1.address);
-      await rushA.addMinter(miner2.address);
-      await rushA.addMinter(miner3.address);
-      await rushA.addMinter(miner4.address);
-      await rushA.addMinter(miner5.address);
+      //await rushA.addMinter(miner1.address);
+      //await rushA.addMinter(miner2.address);
+      //await rushA.addMinter(miner3.address);
+      //await rushA.addMinter(miner4.address);
+      //await rushA.addMinter(miner5.address);
   
       const miners = [
           { miner: miner1, name: "Miner1", schedule: [1] }, // miner1 mines once per day

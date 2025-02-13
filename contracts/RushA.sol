@@ -19,21 +19,19 @@ contract RushA is
     // Token distribution
     uint256 public constant TOTAL_SUPPLY = 800_000_000 * 1e18;
     uint256 public constant INITIAL_SUPPLY = 100_000_000 * 1e18;    
-    uint256 public constant MAX_RANDOM_AMOUNT = 500 * 1e18; // Maximum random mint amount
-    uint256 public constant MAX_HOURLY_MINTERS = 10; // Maximum hourly minters
+    uint256 public constant MAX_RANDOM_AMOUNT = 500 * 1e18; // Maximum random mint amount per call
+    uint256 public constant MAX_HOURLY_MINTERS = 10; // Maximum mints per hour
 
     // Date
     uint256 private constant DAY = 86400;
+    uint256 private constant HOUR = 3600;    
 
     // Mappings
     mapping(address => bool) private blacklisted;
     mapping(address => bool) private bridgeContracts;
     mapping(address => uint256) private bridgeLocked;
-    mapping(address => bool) private isWhitelisted;
-    mapping(address => bool) private minters;
-    mapping(address => uint256) private lastMintTimestamp;
-    mapping(address => uint256) private dailyMintedAmount;
-    mapping(uint256 => uint256) private hourlyMintCount;
+    mapping(address => uint256) private lastMintDay; // Track last mint day per address
+    mapping(uint256 => uint256) private hourlyMintCount; // Track mints per hour    
 
     // Events
     event BridgeBurned(address indexed from, uint256 amount);
@@ -42,7 +40,6 @@ contract RushA is
     event BridgeContractUpdated(address indexed bridge, bool allowed);
     event WhitelistUpdated(address indexed account, bool status);
     event Mined(address indexed miner, uint256 amountWei);
-    event MinterUpdated(address indexed minter, bool status);
 
     constructor()
         ERC20("Rush A", "RSA")
@@ -59,14 +56,10 @@ contract RushA is
         whenNotPaused
     {
         if (from != address(0)) {
-            if (!isWhitelisted[from]) {
-                require(!blacklisted[from], "Sender blacklisted");
-            }
+            require(!blacklisted[from], "Sender blacklisted");
         }
         if (to != address(0)) {
-            if (!isWhitelisted[to]) {
-                require(!blacklisted[to], "Recipient blacklisted");
-            }
+            require(!blacklisted[to], "Recipient blacklisted");
         }
         super._update(from, to, amount);
     }
@@ -77,28 +70,26 @@ contract RushA is
      * - Ensures minting limits per hour and per day.
      * - Ensures total supply does not exceed the cap.
      */
-    function mint(address to) external onlyMinter nonReentrant {
+    function mint(address to) external nonReentrant {
         require(to != address(0), "Mint to the zero address");
-        
-        uint256 randomAmount = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender))) % (MAX_RANDOM_AMOUNT + 1);                
+        require(!blacklisted[msg.sender], "Sender blacklisted");
+       
+        // 生成隨機數量 
+        uint256 randomAmount = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender))) % (MAX_RANDOM_AMOUNT + 1);                        
         uint256 amount = randomAmount;
 
-        require(totalSupply() + amount <= cap(), "ERC20Capped: cap exceeded");
-        require(block.timestamp - lastMintTimestamp[msg.sender] >= 1 days, "Minting too frequently");
+        require(totalSupply() + amount <= cap(), "Exceeds cap");
 
-        uint256 currentHour = block.timestamp / 1 hours;
-        require(hourlyMintCount[currentHour] < MAX_HOURLY_MINTERS, "Minting limit reached for this hour");
+        // 自然日檢查
+        uint256 currentDay = block.timestamp / DAY;
+        require(lastMintDay[msg.sender] < currentDay, "Already minted today");        
+        
+        // 每小時挖礦限制
+        uint256 currentHour = block.timestamp / HOUR;
+        require(hourlyMintCount[currentHour] < MAX_HOURLY_MINTERS, "Hourly limit reached");        
 
         hourlyMintCount[currentHour] += 1;
-
-        if (getCurrentDay() > lastMintTimestamp[msg.sender]) {
-            dailyMintedAmount[msg.sender] = 0;
-        }
-
-        require(dailyMintedAmount[msg.sender] + amount <= MAX_RANDOM_AMOUNT, "Daily minting limit exceeded");
-
-        dailyMintedAmount[msg.sender] += amount;
-        lastMintTimestamp[msg.sender] = block.timestamp;
+        lastMintDay[msg.sender] = currentDay; // 更新最後挖礦日期        
 
         require(totalSupply() + amount <= TOTAL_SUPPLY, "Total supply exceeded");
 
@@ -140,38 +131,13 @@ contract RushA is
         emit BridgeContractUpdated(bridge, allowed);
     }
 
-    function addMinter(address _minter) external onlyOwner {
-        minters[_minter] = true;
-        emit MinterUpdated(_minter, true);
-    }
-
-    function removeMinter(address _minter) external onlyOwner {
-        delete minters[_minter];
-        emit MinterUpdated(_minter, false);
-    }
-
-    function setWhitelist(address account, bool status) external onlyOwner {
-        isWhitelisted[account] = status;
-        emit WhitelistUpdated(account, status);
-    }
-
     // Pause functions
-    function pause() external onlyOwner {
-        _pause();
-    }
-
-    function unpause() external onlyOwner {
-        _unpause();
-    }
+    function pause() external onlyOwner { _pause(); }
+    function unpause() external onlyOwner { _unpause(); }
 
     // Modifiers
     modifier onlyBridge() {
-        require(bridgeContracts[msg.sender], "Not authorized bridge contract");
-        _;
-    }
-
-    modifier onlyMinter() {
-        require(minters[msg.sender], "Not authorized minter");
+        require(bridgeContracts[msg.sender], "Not a bridge");
         _;
     }
     
@@ -188,28 +154,11 @@ contract RushA is
         return bridgeLocked[account];
     }
 
-    function getWhitelistStatus(address account) external view returns (bool) {
-        return isWhitelisted[account];
-    }
-
-    function getMinterStatus(address account) external view returns (bool) {
-        return minters[account];
-    }
-
-    function getLastMintTimestamp(address account) external view returns (uint256) {
-        return lastMintTimestamp[account];
-    }
-
-    function getDailyMintedAmount(address account) external view returns (uint256) {
-        return dailyMintedAmount[account];
+    function getLastMintDay(address account) external view returns (uint256) {
+        return lastMintDay[account];
     }
 
     function getHourlyMintCount(uint256 hour) external view returns (uint256) {
         return hourlyMintCount[hour];
     }
-
-    // Date functions
-    function getCurrentDay() internal view returns (uint256) {
-        return block.timestamp / DAY;
-    }    
 }
