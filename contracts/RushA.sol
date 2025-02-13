@@ -108,8 +108,8 @@ contract RushA is
 
     // Bridge functions
     /**
-     * @dev Burns tokens for bridging to another chain.
-     */
+    * @dev Burns tokens for bridging to another chain.
+    */
     function bridgeBurn(uint256 amount) external {        
         require(balanceOf(msg.sender) >= amount, "Insufficient balance");
         _burn(msg.sender, amount);        
@@ -118,11 +118,13 @@ contract RushA is
     }
 
     /**
-     * @dev Mints tokens received from another chain.
-     */
+    * @dev Mints tokens received from another chain.
+    */
     function bridgeMint(address to, uint256 amount) external onlyBridge nonReentrant {
-        require(amount > 0, "Amount must be greater than 0");
-        require(totalSupply() + amount <= cap(), "ERC20Capped: cap exceeded");                
+        require(bridgeLocked[to] >= amount, "Exceeds locked");
+        bridgeLocked[to] -= amount;                
+
+        require(amount > 0, "Amount must be greater than 0");        
         _mint(to, amount);
         emit BridgeMinted(to, amount);        
     }
