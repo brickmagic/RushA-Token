@@ -19,8 +19,10 @@ contract RushA is
     // Token distribution
     uint256 public constant TOTAL_SUPPLY = 800_000_000 * 1e18;
     uint256 public constant INITIAL_SUPPLY = 100_000_000 * 1e18;    
-    uint256 public constant MAX_RANDOM_AMOUNT = 500 * 1e18; // Maximum random mint amount per call
-    uint256 public constant MAX_HOURLY_MINTERS = 10; // Maximum mints per hour
+    uint256 public constant MAX_MINING_LIMIT_PER_HOUR = 2000 * 1e18; 
+    uint256 public constant DIV_MINING_LIMIT_PER_HOUR = 10000; 
+    uint256 public constant DIV_RANDOM_LIMIT_PER_ADDRESS = 20; 
+    uint256 public constant MIN_MINING_AMOUNT = 1 * 1e18;
 
     // Date
     uint256 private constant DAY = 86400;
@@ -30,15 +32,14 @@ contract RushA is
     mapping(address => bool) private blacklisted;
     mapping(address => bool) private bridgeContracts;
     mapping(address => uint256) private bridgeLocked;
-    mapping(address => uint256) private lastMintDay; // Track last mint day per address
+    mapping(address => uint256) private lastMintHour; // Track last mint hour per address
     mapping(uint256 => uint256) private hourlyMintCount; // Track mints per hour    
 
     // Events
     event BridgeBurned(address indexed from, uint256 amount);
     event BridgeMinted(address indexed to, uint256 amount);
     event BlacklistUpdated(address indexed account, bool status);
-    event BridgeContractUpdated(address indexed bridge, bool allowed);
-    event WhitelistUpdated(address indexed account, bool status);
+    event BridgeContractUpdated(address indexed bridge, bool allowed);    
     event Mined(address indexed miner, uint256 amountWei);
 
     constructor()
@@ -66,36 +67,44 @@ contract RushA is
 
     // Minting function
     /**
-     * @dev Mints a random amount of tokens to the specified address.
-     * - Ensures minting limits per hour and per day.
-     * - Ensures total supply does not exceed the cap.
-     */
+    * @dev Mints a random amount of tokens to the specified address.
+    * - Ensures minting limits per hour.
+    * - Ensures total supply does not exceed the cap.
+    */
     function mint(address to) external nonReentrant {
         require(to != address(0), "Mint to the zero address");
         require(!blacklisted[msg.sender], "Sender blacklisted");
-       
-        // 生成隨機數量 
-        uint256 randomAmount = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender))) % (MAX_RANDOM_AMOUNT + 1);                        
-        uint256 amount = randomAmount;
-
-        require(totalSupply() + amount <= cap(), "Exceeds cap");
-
-        // 自然日檢查
-        uint256 currentDay = block.timestamp / DAY;
-        require(lastMintDay[msg.sender] < currentDay, "Already minted today");        
         
-        // 每小時挖礦限制
-        uint256 currentHour = block.timestamp / HOUR;
-        require(hourlyMintCount[currentHour] < MAX_HOURLY_MINTERS, "Hourly limit reached");        
+        uint256 hourlyMintLimit = this.getHourlyMintLimit();
+        uint256 amount = (uint256(keccak256(abi.encodePacked(block.prevrandao, msg.sender))) % (hourlyMintLimit / DIV_RANDOM_LIMIT_PER_ADDRESS + 1));
+        amount = amount < MIN_MINING_AMOUNT ? MIN_MINING_AMOUNT : amount; 
 
-        hourlyMintCount[currentHour] += 1;
-        lastMintDay[msg.sender] = currentDay; // 更新最後挖礦日期        
+        uint256 currentHour = block.timestamp / HOUR;        
+        require(lastMintHour[msg.sender] < currentHour, "Already minted this hour");
+        require(hourlyMintCount[currentHour] + amount <= hourlyMintLimit, "Hourly limit reached");
 
+        hourlyMintCount[currentHour] += amount;
+        lastMintHour[msg.sender] = currentHour;
         require(totalSupply() + amount <= TOTAL_SUPPLY, "Total supply exceeded");
 
         _mint(to, amount);
         emit Mined(msg.sender, amount);
     }
+
+    /**
+    * @dev Checks if the current miner can mint tokens.
+    * - Ensures the miner has not minted this hour.
+    * - Ensures the hourly mint limit has not been reached.
+    */
+    function canMint(address miner) external view returns (bool) {
+        uint256 currentHour = block.timestamp / HOUR;
+
+        bool hasNotMintedThisHour = lastMintHour[miner] < currentHour;
+        uint256 hourlyMintLimit = this.getHourlyMintLimit();
+        bool hourlyLimitNotReached = hourlyMintCount[currentHour] < hourlyMintLimit;
+
+        return hasNotMintedThisHour && hourlyLimitNotReached;
+    } 
 
     // Bridge functions
     /**
@@ -154,11 +163,24 @@ contract RushA is
         return bridgeLocked[account];
     }
 
-    function getLastMintDay(address account) external view returns (uint256) {
-        return lastMintDay[account];
+    function getLastMintHour(address account) external view returns (uint256) {
+        return lastMintHour[account];
     }
 
     function getHourlyMintCount(uint256 hour) external view returns (uint256) {
         return hourlyMintCount[hour];
     }
+
+    function getHourlyMintLimit() external view returns (uint256) { 
+        uint256 calculatedHourlyMintLimit = (cap() - totalSupply()) / DIV_MINING_LIMIT_PER_HOUR;       
+        return calculatedHourlyMintLimit < MAX_MINING_LIMIT_PER_HOUR ? calculatedHourlyMintLimit : MAX_MINING_LIMIT_PER_HOUR;
+    }
+
+    function getRemainingMintLimit() external view returns (uint256) {
+        uint256 currentHour = block.timestamp / HOUR;
+        uint256 calculatedHourlyMintLimit = (cap() - totalSupply()) / DIV_MINING_LIMIT_PER_HOUR;
+        uint256 hourlyMintLimit = calculatedHourlyMintLimit < MAX_MINING_LIMIT_PER_HOUR ? calculatedHourlyMintLimit : MAX_MINING_LIMIT_PER_HOUR;
+        uint256 remainingMintLimit = hourlyMintLimit > hourlyMintCount[currentHour] ? hourlyMintLimit - hourlyMintCount[currentHour] : 0;
+        return remainingMintLimit;
+    }        
 }
