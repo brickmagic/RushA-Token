@@ -120,13 +120,13 @@ contract RushA is
     /**
     * @dev Mints tokens received from another chain.
     */
-    function bridgeMint(address to, uint256 amount) external onlyBridge nonReentrant {
-        require(bridgeLocked[to] >= amount, "Exceeds locked");
-        bridgeLocked[to] -= amount;                
+    function bridgeMint(address from, address to, uint256 amount) external onlyBridge nonReentrant {
+        require(bridgeLocked[from] >= amount, "Exceeds locked");
+        bridgeLocked[from] -= amount;                
 
         require(amount > 0, "Amount must be greater than 0");        
         _mint(to, amount);
-        emit BridgeMinted(to, amount);        
+        emit BridgeMinted(to, amount);
     }
 
     // Management functions
