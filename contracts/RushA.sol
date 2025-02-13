@@ -37,7 +37,7 @@ contract RushA is
 
     // Events
     event BridgeBurned(address indexed from, uint256 amount);
-    event BridgeMinted(address indexed to, uint256 amount);
+    event BridgeMinted(address indexed from, address to, uint256 amount);
     event BlacklistUpdated(address indexed account, bool status);
     event BridgeContractUpdated(address indexed bridge, bool allowed);    
     event Mined(address indexed miner, uint256 amountWei);
@@ -84,8 +84,7 @@ contract RushA is
         require(hourlyMintCount[currentHour] + amount <= hourlyMintLimit, "Hourly limit reached");
 
         hourlyMintCount[currentHour] += amount;
-        lastMintHour[msg.sender] = currentHour;
-        require(totalSupply() + amount <= TOTAL_SUPPLY, "Total supply exceeded");
+        lastMintHour[msg.sender] = currentHour;        
 
         _mint(to, amount);
         emit Mined(msg.sender, amount);
@@ -126,7 +125,7 @@ contract RushA is
 
         require(amount > 0, "Amount must be greater than 0");        
         _mint(to, amount);
-        emit BridgeMinted(to, amount);
+        emit BridgeMinted(from, to, amount);
     }
 
     // Management functions
