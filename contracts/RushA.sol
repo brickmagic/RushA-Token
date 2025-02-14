@@ -24,8 +24,7 @@ contract RushA is
     uint256 public constant DIV_RANDOM_LIMIT_PER_ADDRESS = 20; 
     uint256 public constant MIN_MINING_AMOUNT = 1 * 1e18;
 
-    // Date
-    uint256 private constant DAY = 86400;
+    // Date    
     uint256 private constant HOUR = 3600;    
 
     // Mappings
