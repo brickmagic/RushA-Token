@@ -2,6 +2,7 @@ const { ethers } = require("hardhat");
 
 async function main() {
   const [deployer] = await ethers.getSigners();
+  const blocksPerHour = 240;
 
   console.log("Deploying contracts with the account:", deployer.address);
 
@@ -10,13 +11,14 @@ async function main() {
   
   // Deploy RushA Contract
   const RushA = await ethers.getContractFactory("RushA");
-  const rushA = await RushA.deploy();
+  const rushA = await RushA.deploy(blocksPerHour);
   await rushA.waitForDeployment();
   const rushAAddress = await rushA.getAddress();
   console.log("RushA Contract address:", rushAAddress);
 
   const receipt = await rushA.deploymentTransaction().wait();
   console.log("Gas used for deployment:", receipt.gasUsed.toString());
+  console.log("");
 
   /* */
   /* Estimate gas for mint function */
@@ -32,25 +34,21 @@ async function main() {
   console.log("Initial ETH balance:", ethers.formatUnits(initialBalance, "ether"));
   console.log("");
 
-  // Log current hour and minting state
+  // Log minting state before minting
   console.log("--- Before the mining process ---");  
-  
-  const currentHour = Math.floor(Date.now() / 1000 / 3600);
-  const hourlyMintCount = await rushAInstance.getHourlyMintCount(currentHour);
-  const lastMintHour = await rushAInstance.getLastMintHour(deployer.address);
-  const hourlyMintLimit = await rushAInstance.getHourlyMintLimit();
-  const remainingMintLimit = await rushAInstance.getRemainingMintLimit();
-  
-  console.log("Current hour:", currentHour);
-  console.log("Hourly mint count:", hourlyMintCount.toString());
-  console.log("Last mint hour for deployer:", lastMintHour.toString());  
-  console.log("Hourly mint limit:", hourlyMintLimit.toString());  
-  console.log("Remaining mint limit:", remainingMintLimit.toString());  
+  const blockNumber_beforeMint = await ethers.provider.getBlockNumber();
+  const currentBlockHour_beforMint = blockNumber_beforeMint / blocksPerHour + 1;        
+  const lastMintBlockHour_beforeMint = await rushAInstance.getLastMintBlockHour(deployer.address);
+  const hourlyMintLimit_beforeMint = await rushAInstance.getHourlyMintLimit();
+  const remainingMintLimit_beforeMint = await rushAInstance.getRemainingMintLimit();
+  console.log("blockNumber_beforeMint:", blockNumber_beforeMint);
+  console.log("currentBlockHour_beforMint:", currentBlockHour_beforMint);  
+  console.log("lastMintBlockHour_beforeMint:", lastMintBlockHour_beforeMint.toString());  
+  console.log("hourlyMintLimit:", hourlyMintLimit_beforeMint.toString());  
+  console.log("remainingMintLimit:", remainingMintLimit_beforeMint.toString());  
   console.log("");
 
   // Estimate gas for canMint function
-  //const canMintGasEstimate = await rushAInstance.estimateGas.canMint(deployer.address);
-  //console.log("Estimated gas for canMint():", canMintGasEstimate.toString());
   const eth_balance_beforeCanMint = await ethers.provider.getBalance(deployer.address);
   console.log("ETH balance (before canMint):", ethers.formatUnits(eth_balance_beforeCanMint, "ether"));  
 
@@ -73,11 +71,7 @@ async function main() {
     const mintTx = await rushAInstance.mint(deployer.address);
     const mintReceipt = await mintTx.wait();
     
-
     // Get the balance of deployer.address after minting
-    //const rushA_balance_beforeMint = await rushAInstance.balanceOf(deployer.address);
-    //console.log("The owner's RushA balance after minted:", ethers.formatUnits(rushA_balance_beforeMint, "ether"));
-
     const eth_balance_afterMint = await ethers.provider.getBalance(deployer.address);
     console.log("ETH balance (After Mint):", ethers.formatUnits(eth_balance_afterMint, "ether"));  
     console.log("Gas used for mint():", mintReceipt.gasUsed.toString());
@@ -88,18 +82,19 @@ async function main() {
   }
   console.log("");
 
-  // Log current hour and minting state
+  // Log minting state after minting
   console.log("--- After the mining process ---");  
-  const currentHour_after = Math.floor(Date.now() / 1000 / 3600);
-  const hourlyMintCount_after = await rushAInstance.getHourlyMintCount(currentHour);
-  const lastMintHour_after = await rushAInstance.getLastMintHour(deployer.address);
-  const hourlyMintLimit_after = await rushAInstance.getHourlyMintLimit();
-  const remainingMintLimit_after = await rushAInstance.getRemainingMintLimit();
-  console.log("Current hour:", currentHour_after);
-  console.log("Hourly mint count:", hourlyMintCount_after.toString());
-  console.log("Last mint hour for deployer:", lastMintHour_after.toString());  
-  console.log("Hourly mint limit:", hourlyMintLimit_after.toString());  
-  console.log("Remaining mint limit:", remainingMintLimit_after.toString());    
+  const blockNumber_afterMint = await ethers.provider.getBlockNumber();
+  const currentBlockHour_afterMint = blockNumber_beforeMint / blocksPerHour + 1;        
+  const lastMintBlockHour_afterMint = await rushAInstance.getLastMintBlockHour(deployer.address);
+  const hourlyMintLimit_afterMint = await rushAInstance.getHourlyMintLimit();
+  const remainingMintLimit_afterMint = await rushAInstance.getRemainingMintLimit();
+
+  console.log("blockNumber_beforeMint:", blockNumber_afterMint);
+  console.log("currentBlockHour_beforMint:", currentBlockHour_afterMint);  
+  console.log("lastMintBlockHour_beforeMint:", lastMintBlockHour_afterMint.toString());  
+  console.log("hourlyMintLimit:", hourlyMintLimit_afterMint.toString());  
+  console.log("remainingMintLimit:", remainingMintLimit_afterMint.toString());   
   console.log("");
 
   // Get the balance of deployer.address after minting

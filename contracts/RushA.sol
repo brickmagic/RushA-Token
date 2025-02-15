@@ -24,15 +24,15 @@ contract RushA is
     uint256 public constant DIV_RANDOM_LIMIT_PER_ADDRESS = 20; 
     uint256 public constant MIN_MINING_AMOUNT = 1 * 1e18;
 
-    // Date    
-    uint256 private constant HOUR = 3600;    
+    // Block numbers per hour
+    uint256 public blocksPerHour;   
 
     // Mappings
     mapping(address => bool) private blacklisted;
     mapping(address => bool) private bridgeContracts;
     mapping(address => uint256) private bridgeLocked;
-    mapping(address => uint256) private lastMintHour; // Track last mint hour per address
-    mapping(uint256 => uint256) private hourlyMintCount; // Track mints per hour    
+    mapping(address => uint256) private lastMintBlockHour;
+    mapping(uint256 => uint256) private blockHourlyMintCount;
 
     // Events
     event BridgeBurned(address indexed from, uint256 amount);
@@ -40,13 +40,16 @@ contract RushA is
     event BlacklistUpdated(address indexed account, bool status);
     event BridgeContractUpdated(address indexed bridge, bool allowed);    
     event Mined(address indexed miner, uint256 amountWei);
+    event BlocksPerHourUpdated(uint256 oldBlocksPerHour, uint256 newBlocksPerHour);
 
-    constructor()
+    constructor(uint256 _blocksPerHour)
         ERC20("Rush A", "RSA")
         ERC20Capped(TOTAL_SUPPLY)
         Ownable(msg.sender)
     {
-        _mint(msg.sender, INITIAL_SUPPLY);        
+        require(_blocksPerHour > 0, "Invalid blocks per hour");
+        _mint(msg.sender, INITIAL_SUPPLY);
+        blocksPerHour = _blocksPerHour;
     }
 
     // Core functions
@@ -78,12 +81,16 @@ contract RushA is
         uint256 amount = (uint256(keccak256(abi.encodePacked(block.prevrandao, msg.sender))) % (hourlyMintLimit / DIV_RANDOM_LIMIT_PER_ADDRESS + 1));
         amount = amount < MIN_MINING_AMOUNT ? MIN_MINING_AMOUNT : amount; 
 
-        uint256 currentHour = block.timestamp / HOUR;        
-        require(lastMintHour[msg.sender] < currentHour, "Already minted this hour");
-        require(hourlyMintCount[currentHour] + amount <= hourlyMintLimit, "Hourly limit reached");
+        uint256 remainingSupply = cap() - totalSupply();
+        amount = amount > remainingSupply ? remainingSupply : amount;
+        require(amount >= MIN_MINING_AMOUNT, "Amount below minimum");  
 
-        hourlyMintCount[currentHour] += amount;
-        lastMintHour[msg.sender] = currentHour;        
+        uint256 currentBlockHour = block.number / blocksPerHour + 1;        
+        require(lastMintBlockHour[msg.sender] < currentBlockHour, "Already minted this block hour");
+        require(blockHourlyMintCount[currentBlockHour] + amount <= hourlyMintLimit, "Block hourly limit reached");
+
+        blockHourlyMintCount[currentBlockHour] += amount;
+        lastMintBlockHour[msg.sender] = currentBlockHour;        
 
         _mint(to, amount);
         emit Mined(msg.sender, amount);
@@ -95,14 +102,14 @@ contract RushA is
     * - Ensures the hourly mint limit has not been reached.
     */
     function canMint(address miner) external view returns (bool) {
-        uint256 currentHour = block.timestamp / HOUR;
+        uint256 currentBlockHour = block.number / blocksPerHour + 1;
 
-        bool hasNotMintedThisHour = lastMintHour[miner] < currentHour;
+        bool hasNotMinted = lastMintBlockHour[miner] < currentBlockHour;
         uint256 hourlyMintLimit = this.getHourlyMintLimit();
-        bool hourlyLimitNotReached = hourlyMintCount[currentHour] < hourlyMintLimit;
+        bool limitNotReached = blockHourlyMintCount[currentBlockHour] < hourlyMintLimit;
 
-        return hasNotMintedThisHour && hourlyLimitNotReached;
-    } 
+        return hasNotMinted && limitNotReached;
+    }
 
     // Bridge functions
     /**
@@ -140,6 +147,12 @@ contract RushA is
         emit BridgeContractUpdated(bridge, allowed);
     }
 
+    function setBlocksPerHour(uint256 newBlocksPerHour) external onlyOwner {
+        require(newBlocksPerHour > 0, "Invalid blocks per hour");
+        emit BlocksPerHourUpdated(blocksPerHour, newBlocksPerHour);
+        blocksPerHour = newBlocksPerHour;
+    }    
+
     // Pause functions
     function pause() external onlyOwner { _pause(); }
     function unpause() external onlyOwner { _unpause(); }
@@ -150,7 +163,7 @@ contract RushA is
         _;
     }
     
-    // Getter functions
+    // Getter functions    
     function getBlacklistStatus(address account) external view returns (bool) {
         return blacklisted[account];
     }
@@ -163,24 +176,24 @@ contract RushA is
         return bridgeLocked[account];
     }
 
-    function getLastMintHour(address account) external view returns (uint256) {
-        return lastMintHour[account];
+    function getLastMintBlockHour(address account) external view returns (uint256) {
+        return lastMintBlockHour[account];
     }
 
-    function getHourlyMintCount(uint256 hour) external view returns (uint256) {
-        return hourlyMintCount[hour];
+    function getBlockHourlyMintCount(uint256 blockHour) external view returns (uint256) {
+        return blockHourlyMintCount[blockHour];
     }
 
     function getHourlyMintLimit() external view returns (uint256) { 
-        uint256 calculatedHourlyMintLimit = (cap() - totalSupply()) / DIV_MINING_LIMIT_PER_HOUR;       
-        return calculatedHourlyMintLimit < MAX_MINING_LIMIT_PER_HOUR ? calculatedHourlyMintLimit : MAX_MINING_LIMIT_PER_HOUR;
+        uint256 calculatedLimit = (cap() - totalSupply()) / DIV_MINING_LIMIT_PER_HOUR;       
+        return calculatedLimit < MAX_MINING_LIMIT_PER_HOUR ? calculatedLimit : MAX_MINING_LIMIT_PER_HOUR;
     }
 
     function getRemainingMintLimit() external view returns (uint256) {
-        uint256 currentHour = block.timestamp / HOUR;
-        uint256 calculatedHourlyMintLimit = (cap() - totalSupply()) / DIV_MINING_LIMIT_PER_HOUR;
-        uint256 hourlyMintLimit = calculatedHourlyMintLimit < MAX_MINING_LIMIT_PER_HOUR ? calculatedHourlyMintLimit : MAX_MINING_LIMIT_PER_HOUR;
-        uint256 remainingMintLimit = hourlyMintLimit > hourlyMintCount[currentHour] ? hourlyMintLimit - hourlyMintCount[currentHour] : 0;
-        return remainingMintLimit;
-    }        
+        uint256 currentBlockHour = block.number / blocksPerHour + 1;
+        uint256 hourlyLimit = this.getHourlyMintLimit();
+        uint256 remaining = hourlyLimit > blockHourlyMintCount[currentBlockHour] ? 
+            hourlyLimit - blockHourlyMintCount[currentBlockHour] : 0;
+        return remaining;
+    }               
 }
